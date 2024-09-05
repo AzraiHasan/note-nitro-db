@@ -1,3 +1,5 @@
+// server/tsconfig.json
+
 {
   "extends": "../.nuxt/tsconfig.server.json"
 }
