@@ -1,1 +1,1 @@
-// stores\user.ts
+// stores/user.ts

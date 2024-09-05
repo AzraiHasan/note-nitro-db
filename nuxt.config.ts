@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
   modules: ['@nuxt/ui','@pinia/nuxt'],
+  pinia: {
+    storesDirs: ['@/stores/**'],
+  },
   nitro: {
     experimental: {
       database: true
@@ -13,5 +16,8 @@ export default defineNuxtConfig({
         options: { name: 'db' }
       }
     }
+  },
+  runtimeConfig: {
+    jwtSecret: process.env.JWT_SECRET
   }
 })

@@ -8,4 +8,7 @@
 
 <script setup lang="ts">
 // Nuxt 3 auto-imports components, so no need to explicitly import Dashboard
+definePageMeta({
+  requiresAuth: true
+})
 </script>

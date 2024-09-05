@@ -1,3 +1,4 @@
+// stores/notes.ts
 import { defineStore } from 'pinia'
 import type { Note } from '@/types'
 
@@ -29,7 +30,7 @@ export const useNotesStore = defineStore('notes', {
       }
     },
     
-    async createNote(note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) {
+    async createNote(note: Omit<Note, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) {
       try {
         const newNote = await $fetch<Note>('/api/notes', {
           method: 'POST',
