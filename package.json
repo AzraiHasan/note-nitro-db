@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxtjs/kinde": "^0.1.11",
     "nuxt": "^3.13.0",
     "vue": "latest"
   },

@@ -1,7 +1,5 @@
 # Note-Taking App Todo List
 
-# Note-Taking App Todo List
-
 ## Phase 1: Core Functionality and MVP
 
 ### Project Setup
@@ -10,22 +8,16 @@
 - [x] Configure development environment
 
 ### Authentication
-- [ ] Sign up for Auth0 account
-- [ ] Configure Auth0 application settings
-- [ ] Integrate Auth0 with Nuxt 3 project
-- [ ] Implement login, logout, and registration flows
-- [ ] Set up user profile management
+- [x] Sign up for Kinde account
+- [x] Configure Kinde application settings
+- [x] Integrate Kinde with Nuxt 3 project using the Nuxt module
+- [x] Test login, logout, and registration flows
+- [ ] Enhance user profile management
 
 ### Database
 - [ ] Set up SQLite database
 - [ ] Design and create necessary database schemas (Users, Notes, etc.)
 - [ ] Implement database connection in Nuxt 3 project
-
-### File Storage
-- [ ] Create local file storage structure
-- [ ] Implement file upload functionality
-- [ ] Develop file retrieval system
-- [ ] Set up file deletion and management
 
 ### Note Management
 - [ ] Create UI for note creation
@@ -82,24 +74,3 @@
 
 ### PWA Support
 - [ ] Research Nuxt 3 PWA capabilities
-- [ ] Plan PWA feature implementation
-
-## Ongoing Tasks
-
-### Testing
-- [ ] Set up testing framework
-- [ ] Write unit tests for core functionalities
-- [ ] Implement integration tests
-- [ ] Perform regular manual testing
-
-### Documentation
-- [ ] Create developer documentation
-- [ ] Write user guide
-- [ ] Document API endpoints
-
-### Security
-- [ ] Perform security audit
-- [ ] Implement security best practices
-- [ ] Set up regular security update schedule
-
-Remember to update this todo list regularly as you progress through development and as new requirements or challenges arise. Prioritize tasks within each phase based on their importance and dependencies.
