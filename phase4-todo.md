@@ -15,7 +15,7 @@
    * Implement consistent error handling across components
    * Add loading indicators for API operations
 
-* Implement Note Filtering and Sorting:
+* [DONE]Implement Note Filtering and Sorting:
    * Enhance the existing dashboard to include more advanced filtering and sorting options
 
 * Testing:
