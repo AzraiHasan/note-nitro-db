@@ -1,11 +1,13 @@
 # Note-Taking App Todo List
 
+# Note-Taking App Todo List
+
 ## Phase 1: Core Functionality and MVP
 
 ### Project Setup
-- [ ] Initialize Nuxt 3 project with current configuration
-- [ ] Set up version control (e.g., create a Git repository)
-- [ ] Configure development environment
+- [x] Initialize Nuxt 3 project with current configuration
+- [x] Set up version control (e.g., create a Git repository)
+- [x] Configure development environment
 
 ### Authentication
 - [ ] Sign up for Auth0 account
