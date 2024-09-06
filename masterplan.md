@@ -3,8 +3,8 @@
 ## Technical Stack Refinements
 
 ### Authentication:
-- Implement Auth0 as the third-party authentication provider
-- Integrate Auth0 with Nuxt 3 for secure user management
+- Implement Kinde as the third-party authentication provider
+- Integrate Kinde with Nuxt 3 for secure user management
 
 ### File Storage:
 - Implement a local file system structure emulating cloud storage patterns:
@@ -23,11 +23,11 @@
 ### Real-time Updates:
 - Utilize Nuxt 3's built-in Nitro WebSockets for real-time functionality
 
-## Development Phases and Milestones (Updated)
+## Development Phases and Milestones
 
 ### Phase 1: Core Functionality and MVP
 1. Set up Nuxt 3 project with current configuration
-2. Integrate Auth0 for user authentication
+2. Integrate Kinde for user authentication
 3. Implement local file storage system
 4. Develop basic note creation and management features
 5. Set up SQLite database and create necessary schemas
