@@ -1,12 +1,14 @@
 <!-- pages/index.vue -->
 <template>
   <div>
-    <NuxtLink to="/api/login" external>
-      Sign in
-    </NuxtLink>
-    <NuxtLink to="/api/register" external>
-      Sign up
-    </NuxtLink>
+    <nav>
+      <NuxtLink to="/api/login" external>
+        Sign in
+      </NuxtLink>
+      <NuxtLink to="/api/register" external>
+        Sign up
+      </NuxtLink>
+    </nav>
   </div>
 </template>
 

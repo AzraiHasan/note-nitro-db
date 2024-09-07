@@ -1,4 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import * as path from 'path';
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
@@ -11,6 +13,12 @@ export default defineNuxtConfig({
     logoutRedirectUri: process.env.NUXT_KINDE_LOGOUT_REDIRECT_URL,
     postLoginRedirectURL: process.env.NUXT_KINDE_POST_LOGIN_REDIRECT_URL
   } as any,
+  /* build: {
+    transpile: ['@nuxtjs/kinde'],
+  },
+  alias: {
+    '#imports': path.resolve(__dirname, 'node_modules/.vite/deps/@nuxtjs/kinde'),
+  }, */
   nitro: {
     experimental: {
       database: true
