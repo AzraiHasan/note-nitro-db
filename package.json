@@ -1,5 +1,5 @@
 {
-  "name": "kinde-nuxt-starter-kit",
+  "name": "nitro-note",
   "private": true,
   "scripts": {
     "build": "nuxt build",
