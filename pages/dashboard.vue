@@ -1,3 +1,4 @@
+<!-- pages\dashboard.vue -->
 <template>
   <div class="container">
     <div class="card start-hero">

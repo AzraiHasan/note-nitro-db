@@ -1,3 +1,5 @@
+<!-- pages\index.vue -->
+
 <template>
   <div class="container">
     <div class="card hero">
@@ -9,11 +11,7 @@
         Configure your app
       </p>
 
-      <NuxtLink
-        to="https://kinde.com/docs/sdks/nuxt-sdk"
-        class="btn btn-light btn-big"
-        external
-      >
+      <NuxtLink to="https://kinde.com/docs/sdks/nuxt-sdk" class="btn btn-light btn-big" external>
         Go to docs
       </NuxtLink>
     </div>
