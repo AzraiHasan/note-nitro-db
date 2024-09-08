@@ -32,16 +32,19 @@
       <template #header>
         <h3 class="text-xl font-semibold">Recent Notes</h3>
       </template>
-      <UList>
-        <UListItem v-for="note in recentNotes" :key="note.id">
-          <template #title>
+
+      <!-- <div>
+        <li v-for="note in recentNotes" :key="note.id">
+          <ul>
             {{ note.title }}
-          </template>
-          <template #description>
+          </ul>
+          <ul>
             Last edited: {{ formatDate(note.lastEdited) }}
-          </template>
-        </UListItem>
-      </UList>
+          </ul>
+        </li>
+      </div> -->
+
+      <UTable :rows="recentNotes" />
     </UCard>
 
     <UCard class="my-8" v-else>
@@ -55,15 +58,23 @@
 </template>
 
 <script setup lang="ts">
+const { $auth } = useNuxtApp()
+
 definePageMeta({
   middleware: ['auth-logged-in'],
 })
 
-const recentNotes = ref([
+/* const recentNotes = ref([
   { id: 1, title: 'Meeting Notes', lastEdited: new Date('2024-03-01') },
   { id: 2, title: 'Project Ideas', lastEdited: new Date('2024-02-28') },
   { id: 3, title: 'To-Do List', lastEdited: new Date('2024-02-27') },
-])
+]) */
+
+const recentNotes = [
+  { id: 1, title: 'Meeting Notes', lastEdited: new Date('2024-03-01') },
+  { id: 2, title: 'Project Ideas', lastEdited: new Date('2024-02-28') },
+  { id: 3, title: 'To-Do List', lastEdited: new Date('2024-02-27') },
+]
 
 const getUserInitials = () => {
   const user = $auth.user
