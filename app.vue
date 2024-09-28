@@ -1,23 +1,25 @@
 <script setup lang="ts">
-  const nameInput = ref<any>('');
-  const emailInput = ref<any>('');
 
-  function submit () {
-    $fetch('/api/addUser', {
-      method: 'POST',
-      body: {
-        name: nameInput.value,
-        email: emailInput.value
-      }
-    })
-  }
+const activeComponent = ref<'cashIn' | 'cashOut'>('cashIn')
 </script>
 
 <template>
   <div>
-    <input v-model="nameInput" type="text" placeholder="Name">
-    <input v-model="emailInput" type="text" placeholder="Email">
+    <h1>Financial Tracker</h1>
+    <div>
+      <button @click="activeComponent = 'cashIn'" :class="{ active: activeComponent === 'cashIn' }">Cash In</button>
+      <button @click="activeComponent = 'cashOut'" :class="{ active: activeComponent === 'cashOut' }">Cash Out</button>
+    </div>
+    <CashIn v-if="activeComponent === 'cashIn'" />
+    <CashOut v-if="activeComponent === 'cashOut'" />
     <br>
-    <button @click="submit">Add</button>
+    <TransactionList />
   </div>
 </template>
+
+<style scoped>
+.active {
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
