@@ -2,6 +2,7 @@ import { H3Event } from 'h3'
 
 interface Transaction {
   id: number
+  timestamp: number
   type: 'Cash In' | 'Cash Out'
   date: string
   amount: number
@@ -19,13 +20,13 @@ export default defineEventHandler(async (event: H3Event) => {
   try {
     // Fetch Cash In transactions
     const cashInResult = await db.sql<SQLResult>`
-      SELECT id, 'Cash In' as type, date, amount, category, notes
+      SELECT id, timestamp, 'Cash In' as type, date, amount, category, notes
       FROM cash_in
     `
 
     // Fetch Cash Out transactions
     const cashOutResult = await db.sql<SQLResult>`
-      SELECT id, 'Cash Out' as type, date, amount, category, notes
+      SELECT id, timestamp, 'Cash Out' as type, date, amount, category, notes
       FROM cash_out
     `
 

@@ -2,6 +2,7 @@ import { H3Event } from 'h3'
 
 interface Transaction {
   id: number
+  timestamp: number
   type: 'Cash In' | 'Cash Out'
   date: string
   amount: number
@@ -18,13 +19,13 @@ export default defineEventHandler(async (event: H3Event) => {
       await db.sql`
         UPDATE cash_in
         SET date = ${body.date}, amount = ${body.amount}, category = ${body.category}, notes = ${body.notes}
-        WHERE id = ${body.id}
+        WHERE timestamp = ${body.timestamp}
       `
     } else {
       await db.sql`
         UPDATE cash_out
         SET date = ${body.date}, amount = ${body.amount}, category = ${body.category}, notes = ${body.notes}
-        WHERE id = ${body.id}
+        WHERE timestamp = ${body.timestamp}
       `
     }
 
