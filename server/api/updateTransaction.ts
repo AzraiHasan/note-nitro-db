@@ -5,7 +5,7 @@ interface Transaction {
   type: 'Cash In' | 'Cash Out'
   date: string
   amount: number
-  category: string | null
+  category: string
   notes: string | null
 }
 
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event: H3Event) => {
     if (body.type === 'Cash In') {
       await db.sql`
         UPDATE cash_in
-        SET date = ${body.date}, amount = ${body.amount}, notes = ${body.notes}
+        SET date = ${body.date}, amount = ${body.amount}, category = ${body.category}, notes = ${body.notes}
         WHERE id = ${body.id}
       `
     } else {

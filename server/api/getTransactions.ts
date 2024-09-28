@@ -5,7 +5,7 @@ interface Transaction {
   type: 'Cash In' | 'Cash Out'
   date: string
   amount: number
-  category: string | null
+  category: string
   notes: string | null
 }
 
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event: H3Event) => {
   try {
     // Fetch Cash In transactions
     const cashInResult = await db.sql<SQLResult>`
-      SELECT id, 'Cash In' as type, date, amount, NULL as category, notes
+      SELECT id, 'Cash In' as type, date, amount, category, notes
       FROM cash_in
     `
 
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event: H3Event) => {
     console.error('Error fetching transactions:', error)
     return { 
       success: false, 
-      error: 'Failed to fetch transactions' 
+      error: 'Please make an entry ...' 
     }
   }
 })

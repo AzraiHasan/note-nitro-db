@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT NOT NULL,
     amount REAL NOT NULL,
+    category TEXT NOT NULL,
     notes TEXT
   )
   `;
@@ -20,12 +21,14 @@ export default defineEventHandler(async (event) => {
   (
     date,
     amount,
+    category,
     notes
   )
   VALUES
   (
     ${requestBody.date},
     ${requestBody.amount},
+    ${requestBody.category},
     ${requestBody.notes}
   )
   `;

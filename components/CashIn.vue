@@ -3,7 +3,14 @@ import { ref } from 'vue'
 
 const date = ref('')
 const amount = ref('')
+const category = ref('')
 const notes = ref('')
+
+const categories = [
+  'Sales',
+  'Balance',
+  'Other'
+]
 
 function validateAmount(value: string): boolean {
   const regex = /^\d+(\.\d{1,2})?$/
@@ -21,6 +28,7 @@ function submit() {
     body: {
       date: date.value,
       amount: parseFloat(amount.value),
+      category: category.value,
       notes: notes.value || null
     }
   }).then(() => {
@@ -34,6 +42,7 @@ function submit() {
 function resetForm() {
   date.value = ''
   amount.value = ''
+  category.value = ''
   notes.value = ''
 }
 </script>
@@ -46,6 +55,12 @@ function resetForm() {
     </div>
     <div>
       <input v-model="amount" type="number" step="0.01" placeholder="Amount" required>
+    </div>
+    <div>
+      <select v-model="category" required>
+        <option value="" disabled>Select a category</option>
+        <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+      </select>
     </div>
     <div>
       <textarea v-model="notes" placeholder="Notes (optional)"></textarea>
