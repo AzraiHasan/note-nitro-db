@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
 
 interface Transaction {
   id: number
@@ -50,9 +49,21 @@ async function fetchTransactions() {
   }
 }
 
+function isToday(dateString: string): boolean {
+  const today = new Date()
+  const transactionDate = new Date(dateString)
+  return (
+    transactionDate.getDate() === today.getDate() &&
+    transactionDate.getMonth() === today.getMonth() &&
+    transactionDate.getFullYear() === today.getFullYear()
+  )
+}
+
 function openEditModal(transaction: Transaction) {
-  Object.assign(editingTransaction, transaction)
-  showEditModal.value = true
+  if (isToday(transaction.date)) {
+    Object.assign(editingTransaction, transaction)
+    showEditModal.value = true
+  }
 }
 
 async function saveEdit() {
@@ -84,6 +95,8 @@ function formatDate(dateString: string): string {
 function formatAmount(amount: number): string {
   return amount.toFixed(2)
 }
+
+
 </script>
 
 <template>
@@ -112,7 +125,8 @@ function formatAmount(amount: number): string {
           <td>{{ transaction.category || 'N/A' }}</td>
           <td>{{ transaction.notes || 'N/A' }}</td>
           <td>
-            <button @click="openEditModal(transaction)">Edit</button>
+            <button v-if="isToday(transaction.date)" @click="openEditModal(transaction)">Edit</button>
+            <span v-else>Closed</span>
           </td>
         </tr>
       </tbody>
