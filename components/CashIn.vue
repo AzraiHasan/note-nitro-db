@@ -1,70 +1,215 @@
-<script setup lang="ts">
-import { ref } from 'vue'
+<!-- components/CashIn.vue -->
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { useTransactionStore } from '~/stores/transaction'
 
-const date = ref('')
-const amount = ref('')
-const category = ref('')
+const transactionStore = useTransactionStore()
+
+const amount = ref(0)
+const category = ref('Sales')
 const notes = ref('')
 
-const categories = [
-  'Sales',
-  'Balance',
-  'Other'
-]
+const categories = ['Sales', 'Balance', 'Others']
 
-function validateAmount(value: string): boolean {
-  const regex = /^\d+(\.\d{1,2})?$/
-  return regex.test(value)
-}
-
-function submit() {
-  if (!validateAmount(amount.value)) {
-    alert('Please enter a valid amount (max 2 decimal points)')
-    return
+const submitCashIn = () => {
+  const transaction = {
+    timestamp: Date.now(),
+    amount: parseFloat(amount.value.toFixed(2)),
+    category: category.value,
+    notes: notes.value,
+    type: 'cash-in'
   }
-
-  $fetch('/api/addCashIn', {
-    method: 'POST',
-    body: {
-      date: date.value,
-      amount: parseFloat(amount.value),
-      category: category.value,
-      notes: notes.value || null
-    }
-  }).then(() => {
-    alert('Cash In transaction added successfully')
-    resetForm()
-  }).catch((error) => {
-    alert('Error adding Cash In transaction: ' + error.message)
-  })
+  transactionStore.addTransaction(transaction)
+  // Reset form
+  amount.value = 0
+  category.value = 'Sales'
+  notes.value = ''
+  updateTodaysCashIns()
 }
 
-function resetForm() {
-  date.value = ''
-  amount.value = ''
-  category.value = ''
-  notes.value = ''
+const today = new Date()
+today.setHours(0, 0, 0, 0)
+
+// Change todaysCashIns to a ref
+const todaysCashIns = ref([])
+
+// Function to update todaysCashIns
+const updateTodaysCashIns = () => {
+  todaysCashIns.value = transactionStore.transactions
+    .filter(t => t.type === 'cash-in' && new Date(t.timestamp).setHours(0, 0, 0, 0) === today.getTime())
+    .sort((a, b) => b.timestamp - a.timestamp)
+}
+
+// Call updateTodaysCashIns initially and whenever transactions change
+updateTodaysCashIns()
+watch(() => transactionStore.transactions, updateTodaysCashIns, { deep: true })
+
+const formatTime = (timestamp) => {
+  const date = new Date(timestamp)
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+const formatAmount = (amount) => {
+  return amount.toFixed(2)
+}
+
+// Edit functionality
+const isModalOpen = ref(false)
+const editingTransaction = ref(null)
+
+const openEditModal = (transaction) => {
+  editingTransaction.value = { ...transaction }
+  isModalOpen.value = true
+}
+
+const closeEditModal = () => {
+  isModalOpen.value = false
+  editingTransaction.value = null
+}
+
+const saveEdit = () => {
+  if (editingTransaction.value) {
+    const newTimestamp = Date.now()
+    const updatedTransaction = {
+      ...editingTransaction.value,
+      amount: parseFloat(editingTransaction.value.amount.toFixed(2)),
+      oldTimestamp: editingTransaction.value.timestamp,
+      newTimestamp: newTimestamp
+    }
+    transactionStore.updateTransaction(updatedTransaction)
+    closeEditModal()
+
+    // Force re-computation of todaysCashIns
+    updateTodaysCashIns()
+  }
 }
 </script>
 
 <template>
   <div>
     <h2>Cash In</h2>
-    <div>
-      <input v-model="date" type="date" required>
+    <form @submit.prevent="submitCashIn">
+      <div>
+        <label for="amount">Amount (MYR):</label>
+        <input id="amount" v-model="amount" type="number" step="0.05" min="0" required>
+      </div>
+      <div>
+        <label for="category">Category:</label>
+        <select id="category" v-model="category">
+          <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+        </select>
+      </div>
+      <div>
+        <label for="notes">Notes:</label>
+        <textarea id="notes" v-model="notes"></textarea>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+
+    <h3>Today's Cash In Transactions</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Amount (MYR)</th>
+          <th>Category</th>
+          <th>Notes</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="transaction in todaysCashIns" :key="transaction.timestamp">
+          <td>{{ formatTime(transaction.timestamp) }}</td>
+          <td class="cash-in">+{{ formatAmount(transaction.amount) }}</td>
+          <td>{{ transaction.category }}</td>
+          <td>{{ transaction.notes }}</td>
+          <td>
+            <button @click="openEditModal(transaction)">Edit</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Edit Modal -->
+    <div v-if="isModalOpen" class="modal">
+      <div class="modal-content">
+        <h3>Edit Transaction</h3>
+        <p>Date: {{ formatTime(editingTransaction.timestamp) }} </p>
+        <div>
+          <label for="edit-amount">Amount (MYR):</label>
+          <input id="edit-amount" v-model="editingTransaction.amount" type="number" step="0.05" min="0" required>
+        </div>
+        <div>
+          <label for="edit-category">Category:</label>
+          <select id="edit-category" v-model="editingTransaction.category">
+            <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+          </select>
+        </div>
+        <div>
+          <label for="edit-notes">Notes:</label>
+          <textarea id="edit-notes" v-model="editingTransaction.notes"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button @click="saveEdit">Save</button>
+          <button @click="closeEditModal">Cancel</button>
+        </div>
+      </div>
     </div>
-    <div>
-      <input v-model="amount" type="number" step="0.01" placeholder="Amount" required>
-    </div>
-    <div>
-      <select v-model="category" required>
-        <option value="" disabled>Select a category</option>
-        <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
-      </select>
-    </div>
-    <div>
-      <textarea v-model="notes" placeholder="Notes (optional)"></textarea>
-    </div>
-    <button @click="submit">Add Cash In</button>
   </div>
 </template>
+
+<style scoped>
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.cash-in {
+  color: green;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 300px;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+</style>

@@ -32,7 +32,7 @@ sequenceDiagram
     UI->>User: Show updated transaction
 
     Note over TransactionStore: Daily maintenance (e.g., at app startup)
-    TransactionStore->>TransactionStore: Remove data older than 7 days
+    TransactionStore->>TransactionStore: Remove data older than 8 days
     TransactionStore->>TransactionStore: Shift 'editable' status to new day
 :::
 
@@ -46,22 +46,22 @@ This document outlines an optimized approach for a financial tracking applicatio
 
 ### 1. Single Pinia Store (TransactionStore)
 - Manages all transactions (Cash In and Cash Out) locally.
-- Stores data for 7 continuous days, including today.
+- Stores data for 8 continuous days, including today.
 - Today's transactions are editable; previous days are read-only.
 
 ### 2. One-way Sync to Server
 - During the first app startup of the day (12:00 AM to 11:59 PM):
   - Checks for yesterday's unsynchronized data.
-  - If present, sends it to the server via a single API call (/api/addTransactions).
+  - If present, sends it to the server via a single API call (/api/syncTransactions).
   - Marks yesterday's data as synced after successful upload.
 
 ### 3. Local Data Management
-- Removes data older than 7 days during daily maintenance.
+- Removes data older than 8 days during daily maintenance.
 - Shifts the 'editable' status to the new day at the start of each day.
 
 ### 4. User Interface
 - Allows adding and editing transactions for the current day only.
-- Displays 7 days of transaction data, clearly indicating which are editable.
+- Displays 8 days of transaction data, clearly indicating which are editable.
 
 ## Benefits for Local Environment Optimization
 

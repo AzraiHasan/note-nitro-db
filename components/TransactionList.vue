@@ -1,174 +1,63 @@
-<script setup lang="ts">
+<!-- components/TransactionList.vue -->
+<script setup>
+import { computed } from 'vue'
+import { useTransactionStore } from '~/stores/transaction'
 
-interface Transaction {
-  id: number
-  type: 'Cash In' | 'Cash Out'
-  date: string
-  amount: number
-  category: string | null
-  notes: string | null
-}
+const transactionStore = useTransactionStore()
 
-const transactions = ref<Transaction[]>([])
-const loading = ref(true)
-const error = ref<string | null>(null)
-const showEditModal = ref(false)
-const editingTransaction = reactive<Transaction>({
-  id: 0,
-  type: 'Cash In',
-  date: '',
-  amount: 0,
-  category: null,
-  notes: null
-})
+const today = new Date()
+today.setHours(0, 0, 0, 0)
 
-const categories = [
-  'Ingredient',
-  'Supply',
-  'Salary',
-  'Utilities',
-  'Rent',
-  'Other'
-]
-
-async function fetchTransactions() {
-  try {
-    loading.value = true
-    error.value = null
-    const response = await $fetch<{ success: boolean, transactions?: Transaction[], error?: string }>('/api/getTransactions')
-    if (response.success && response.transactions) {
-      transactions.value = response.transactions
-    } else {
-      throw new Error(response.error || 'Failed to fetch transactions')
-    }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An unknown error occurred'
-    console.error('Error fetching transactions:', err)
-  } finally {
-    loading.value = false
-  }
-}
-
-function isToday(dateString: string): boolean {
-  const today = new Date()
-  const transactionDate = new Date(dateString)
-  return (
-    transactionDate.getDate() === today.getDate() &&
-    transactionDate.getMonth() === today.getMonth() &&
-    transactionDate.getFullYear() === today.getFullYear()
-  )
-}
-
-function openEditModal(transaction: Transaction) {
-  if (isToday(transaction.date)) {
-    Object.assign(editingTransaction, transaction)
-    showEditModal.value = true
-  }
-}
-
-async function saveEdit() {
-  try {
-    const response = await $fetch<{ success: boolean, error?: string }>('/api/updateTransaction', {
-      method: 'POST',
-      body: editingTransaction
+const sortedTransactions = computed(() => {
+  return transactionStore.transactions
+    .slice()
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .filter(transaction => {
+      const transactionDate = new Date(transaction.timestamp)
+      const daysDiff = (today.getTime() - transactionDate.getTime()) / (1000 * 3600 * 24)
+      return daysDiff < 8
     })
-    if (response.success) {
-      await fetchTransactions()
-      showEditModal.value = false
-    } else {
-      throw new Error(response.error || 'Failed to update transaction')
-    }
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'An unknown error occurred'
-    console.error('Error updating transaction:', err)
-  }
-}
-
-onMounted(() => {
-  fetchTransactions()
 })
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString()
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp)
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const month = monthNames[date.getMonth()]
+  const day = date.getDate().toString().padStart(2, '0')
+  const year = date.getFullYear()
+  return `${month} ${day}, ${year}`
 }
 
-function formatAmount(amount: number): string {
-  return amount.toFixed(2)
+const formatAmount = (amount, type) => {
+  const formattedAmount = amount.toFixed(2)
+  return type === 'cash-in' ? `+${formattedAmount}` : `-${formattedAmount}`
 }
-
 
 </script>
 
 <template>
   <div>
     <h2>Transaction List</h2>
-    <div v-if="loading">Loading transactions...</div>
-    <div v-else-if="error">{{ error }}</div>
-    <table v-else>
+    <table>
       <thead>
         <tr>
           <th>Date</th>
-          <th>Type</th>
-          <th>Amount</th>
+          <th>Amount (MYR)</th>
           <th>Category</th>
           <th>Notes</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="transaction in transactions" :key="transaction.id">
-          <td>{{ formatDate(transaction.date) }}</td>
-          <td>{{ transaction.type }}</td>
-          <td :class="{'text-green': transaction.type === 'Cash In', 'text-red': transaction.type === 'Cash Out'}">
-            {{ transaction.type === 'Cash In' ? '+' : '-' }}${{ formatAmount(transaction.amount) }}
+        <tr v-for="transaction in sortedTransactions" :key="transaction.timestamp">
+          <td>{{ formatDate(transaction.timestamp) }}</td>
+          <td :class="transaction.type === 'cash-in' ? 'cash-in' : 'cash-out'">
+            {{ formatAmount(transaction.amount, transaction.type) }}
           </td>
-          <td>{{ transaction.category || 'N/A' }}</td>
-          <td>{{ transaction.notes || 'N/A' }}</td>
-          <td>
-            <button v-if="isToday(transaction.date)" @click="openEditModal(transaction)">Edit</button>
-            <span v-else>Closed</span>
-          </td>
+          <td>{{ transaction.category }}</td>
+          <td>{{ transaction.notes }}</td>
         </tr>
       </tbody>
     </table>
-
-    <!-- Edit Modal -->
-    <div v-if="showEditModal" class="modal">
-      <div class="modal-content">
-        <h3>Edit Transaction</h3>
-        <form @submit.prevent="saveEdit">
-          <div>
-            <label>Date:</label>
-            <input v-model="editingTransaction.date" type="date" disabled>
-          </div>
-          <div>
-            <label>Type:</label>
-            <select v-model="editingTransaction.type" disabled>
-              <option value="Cash In">Cash In</option>
-              <option value="Cash Out">Cash Out</option>
-            </select>
-          </div>
-          <div>
-            <label>Amount:</label>
-            <input v-model.number="editingTransaction.amount" type="number" step="0.01" required>
-          </div>
-          <div v-if="editingTransaction.type === 'Cash Out'">
-            <label>Category:</label>
-            <select v-model="editingTransaction.category" required>
-              <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
-            </select>
-          </div>
-          <div>
-            <label>Notes:</label>
-            <textarea v-model="editingTransaction.notes" :required="editingTransaction.type === 'Cash Out'"></textarea>
-          </div>
-          <div>
-            <button type="submit">Save</button>
-            <button type="button" @click="showEditModal = false">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -189,30 +78,11 @@ th {
   background-color: #f2f2f2;
 }
 
-.text-green {
+.cash-in {
   color: green;
 }
 
-.text-red {
+.cash-out {
   color: red;
-}
-
-.modal {
-  position: fixed;
-  z-index: 1;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
 }
 </style>
