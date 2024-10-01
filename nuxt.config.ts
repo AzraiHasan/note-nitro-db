@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     database: {
       default: {
         connector: 'sqlite',
-        options: { name: 'db' }
+        options: { name: 'db', path: '.data/db.sqlite3' }
       }
     }
   }
