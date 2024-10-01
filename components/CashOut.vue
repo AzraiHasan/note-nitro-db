@@ -1,4 +1,4 @@
-<!-- components/CashOut.vue -->
+<!-- CashOut.vue -->
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useTransactionStore } from '~/stores/transaction'
@@ -8,6 +8,7 @@ const transactionStore = useTransactionStore()
 const amount = ref(0)
 const category = ref('Ingredients')
 const notes = ref('')
+const transactionDate = ref(new Date().toISOString().split('T')[0]) // Set default to today's date
 
 const categories = ['Ingredients', 'Supplies', 'Salary', 'Utilities', 'Rent', 'Others']
 
@@ -17,8 +18,11 @@ const submitCashOut = () => {
     return
   }
 
+  const selectedDate = new Date(transactionDate.value)
+  selectedDate.setHours(new Date().getHours(), new Date().getMinutes(), new Date().getSeconds())
+
   const transaction = {
-    timestamp: Date.now(),
+    timestamp: selectedDate.getTime(),
     amount: parseFloat(amount.value.toFixed(2)),
     category: category.value,
     notes: notes.value,
@@ -29,11 +33,15 @@ const submitCashOut = () => {
   amount.value = 0
   category.value = 'Ingredients'
   notes.value = ''
+  transactionDate.value = new Date().toISOString().split('T')[0]
   updateTodaysCashOuts()
 }
 
-const today = new Date()
-today.setHours(0, 0, 0, 0)
+const today = computed(() => {
+  const date = new Date(transactionDate.value)
+  date.setHours(0, 0, 0, 0)
+  return date
+})
 
 // Change todaysCashOuts to a ref
 const todaysCashOuts = ref([])
@@ -41,13 +49,12 @@ const todaysCashOuts = ref([])
 // Function to update todaysCashOuts
 const updateTodaysCashOuts = () => {
   todaysCashOuts.value = transactionStore.transactions
-    .filter(t => t.type === 'cash-out' && new Date(t.timestamp).setHours(0, 0, 0, 0) === today.getTime())
+    .filter(t => t.type === 'cash-out' && new Date(t.timestamp).setHours(0, 0, 0, 0) === today.value.getTime())
     .sort((a, b) => b.timestamp - a.timestamp)
 }
 
-// Call updateTodaysCashOuts initially and whenever transactions change
-updateTodaysCashOuts()
-watch(() => transactionStore.transactions, updateTodaysCashOuts, { deep: true })
+// Call updateTodaysCashOuts initially and whenever transactions or selected date change
+watch([() => transactionStore.transactions, transactionDate], updateTodaysCashOuts, { deep: true })
 
 const formatTime = (timestamp) => {
   const date = new Date(timestamp)
@@ -81,12 +88,12 @@ const saveEdit = () => {
       return
     }
 
-    const newTimestamp = Date.now()
     const updatedTransaction = {
       ...editingTransaction.value,
       amount: parseFloat(editingTransaction.value.amount.toFixed(2)),
       oldTimestamp: editingTransaction.value.timestamp,
-      newTimestamp: newTimestamp
+      // Keep the original timestamp as the primary key
+      newTimestamp: editingTransaction.value.timestamp
     }
     transactionStore.updateTransaction(updatedTransaction)
     closeEditModal()
@@ -101,6 +108,10 @@ const saveEdit = () => {
   <div>
     <h2>Cash Out</h2>
     <form @submit.prevent="submitCashOut">
+      <div>
+        <label for="date">Date:</label>
+        <input id="date" v-model="transactionDate" type="date" required>
+      </div>
       <div>
         <label for="amount">Amount (MYR):</label>
         <input id="amount" v-model="amount" type="number" step="0.05" min="0" required>
@@ -118,7 +129,7 @@ const saveEdit = () => {
       <button type="submit">Submit</button>
     </form>
 
-    <h3>Today's Cash Out Transactions</h3>
+    <h3>Selected Date's Cash Out Transactions</h3>
     <table>
       <thead>
         <tr>
@@ -138,9 +149,6 @@ const saveEdit = () => {
           <td>
             <button @click="openEditModal(transaction)">Edit</button>
           </td>
-
-
-
         </tr>
       </tbody>
     </table>
@@ -149,7 +157,7 @@ const saveEdit = () => {
     <div v-if="isModalOpen" class="modal">
       <div class="modal-content">
         <h3>Edit Transaction</h3>
-        <p>Date: {{ formatTime(editingTransaction.timestamp) }} </p>
+        <p>Time: {{ formatTime(editingTransaction.timestamp) }}</p>
         <div>
           <label for="edit-amount">Amount (MYR):</label>
           <input id="edit-amount" v-model="editingTransaction.amount" type="number" step="0.05" min="0" required>
