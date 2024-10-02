@@ -17,7 +17,7 @@
           <td>{{ transaction.text }}</td>
           <td>{{ formatDate(transaction.created_at) }}</td>
           <td>
-            <button v-if="isToday(transaction.created_at)" @click="editTransaction(transaction.id)">
+            <button v-if="isToday(transaction.created_at)" @click="openEditModal(transaction.id)">
               Edit
             </button>
             <span v-else>Synced</span>
@@ -29,12 +29,28 @@
     <p>Debug: {{ transactions.length }} transactions</p>
     <button @click="manualFetch">Manual Fetch</button>
   </div>
+
+  <!-- Edit Modal -->
+  <Teleport to="body">
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <h3>Edit Transaction</h3>
+        <input v-model="editingTransaction.text" :key="editingTransaction.id" placeholder="Transaction text" />
+        <div class="modal-buttons">
+          <button @click="saveEdit">Save</button>
+          <button @click="closeModal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
 const transactions = ref([])
 const errorMessage = ref('')
 const loading = ref(true)
+const showModal = ref(false)
+const editingTransaction = ref({ id: null, text: '' })
 
 const props = defineProps({
   refreshTrigger: {
@@ -59,9 +75,27 @@ function isToday(dateString) {
   )
 }
 
-function editTransaction(id) {
-  console.log(`Edit transaction with ID: ${id}`)
-  // Implement edit functionality here
+function openEditModal(transaction) {
+  console.log(`Open edit modal for ${transaction}`)
+  editingTransaction.value = { ...transaction }
+  showModal.value = true
+}
+
+function closeModal() {
+  console.log('Close modal')
+  showModal.value = false
+  editingTransaction.value = { id: null, text: '' }
+}
+
+function saveEdit() {
+  console.log(`Save edit for ${editingTransaction.value.id}`)
+  // TODO: Implement actual save logic here
+  // Update the transaction in the transactions array
+  const index = transactions.value.findIndex(t => t.id === editingTransaction.value.id)
+  if (index !== -1) {
+    transactions.value[index] = { ...transactions.value[index], ...editingTransaction.value }
+  }
+  closeModal()
 }
 
 async function fetchTransactions() {
@@ -137,5 +171,43 @@ button {
 
 button:hover {
   background-color: #45a049;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 300px;
+}
+
+.modal h3 {
+  margin-top: 0;
+}
+
+.modal input {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-buttons button {
+  width: 45%;
 }
 </style>
