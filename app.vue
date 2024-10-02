@@ -1,5 +1,7 @@
 <template>
   <div>
+    <TestChart />
+
     <h1>Transaction Manager</h1>
 
     <!-- Add Transaction Form -->
