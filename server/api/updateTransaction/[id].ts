@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  if (!body.text || !body.amount || !body.type || !body.category || !body.date) {
+  if (!body.date || !body.amount || !body.type || !body.category || !body.text) {
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Invalid request. All fields are required.' })
@@ -33,13 +33,13 @@ export default defineEventHandler(async (event) => {
   try {
     const result = await db.sql`
       UPDATE transactions
-      SET text = ${body.text},
+      SET date = ${body.date},
           amount = ${parseFloat(body.amount)},
           type = ${body.type},
           category = ${body.category},
-          date = ${body.date}
+          text = ${body.text}
       WHERE id = ${parseInt(id)}
-      RETURNING id, text, amount, type, category, date, created_at
+      RETURNING id, date, amount, type, category, text, created_at
     `
 
     if (result.rows?.length === 0) {
@@ -49,6 +49,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
+    console.log('Updated transaction:', result.rows?.[0])
     return { body: JSON.stringify(result.rows?.[0]) }
   } catch (error: any) {
     console.error('Error updating transaction:', error)

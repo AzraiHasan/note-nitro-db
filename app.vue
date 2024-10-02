@@ -6,9 +6,9 @@
     <form @submit.prevent="validateAndSubmit">
       <h2>Add New Transaction</h2>
 
-      <label for="transactionText">Transaction Text:</label>
-      <input id="transactionText" v-model="transactionText" type="text" required />
-      <span class="error" v-if="errors.text">{{ errors.text }}</span>
+      <label for="transactionDate">Date:</label>
+      <input id="transactionDate" v-model="transactionDate" type="date" required />
+      <span class="error" v-if="errors.date">{{ errors.date }}</span>
 
       <label for="transactionAmount">Amount (MYR):</label>
       <input id="transactionAmount" v-model="transactionAmount" type="number" step="0.01" required />
@@ -29,9 +29,9 @@
       </select>
       <span class="error" v-if="errors.category">{{ errors.category }}</span>
 
-      <label for="transactionDate">Date:</label>
-      <input id="transactionDate" v-model="transactionDate" type="date" required />
-      <span class="error" v-if="errors.date">{{ errors.date }}</span>
+      <label for="transactionText">Transaction Note:</label>
+      <textarea id="transactionText" v-model="transactionText" type="text" required />
+      <span class="error" v-if="errors.text">{{ errors.text }}</span>
 
       <button type="submit">Submit</button>
     </form>

@@ -5,23 +5,21 @@
     <table v-else-if="transactions.length">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Text</th>
+          <th>Date</th>
           <th>Amount (MYR)</th>
           <th>Type</th>
           <th>Category</th>
-          <th>Date</th>
+          <th>Note</th>
           <th>Action</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="transaction in transactions" :key="transaction.id">
-          <td>{{ transaction.id }}</td>
-          <td>{{ transaction.text }}</td>
+          <td>{{ formatDate(transaction.date) }}</td>
           <td>{{ formatCurrency(transaction.amount) }}</td>
           <td>{{ transaction.type }}</td>
           <td>{{ transaction.category }}</td>
-          <td>{{ formatDate(transaction.date) }}</td>
+          <td>{{ transaction.text }}</td>
           <td>
             <button @click="openEditModal(transaction)">
               Edit
@@ -39,10 +37,10 @@
       <div class="modal">
         <h3>Edit Transaction</h3>
         <form @submit.prevent="validateAndSave">
-          <label>Text:
-            <input v-model="editingTransaction.text" type="text" required />
+          <label>Date:
+            <input v-model="editingTransaction.date" type="date" required />
           </label>
-          <span class="error" v-if="errors.text">{{ errors.text }}</span>
+          <span class="error" v-if="errors.date">{{ errors.date }}</span>
 
           <label>Amount (MYR):
             <input v-model="editingTransaction.amount" type="number" step="0.01" required />
@@ -65,11 +63,11 @@
             </select>
           </label>
           <span class="error" v-if="errors.category">{{ errors.category }}</span>
-
-          <label>Date:
-            <input v-model="editingTransaction.date" type="date" required />
+          <label>Note:
+            <input v-model="editingTransaction.text" type="text" required />
           </label>
-          <span class="error" v-if="errors.date">{{ errors.date }}</span>
+          <span class="error" v-if="errors.text">{{ errors.text }}</span>
+
 
           <div class="modal-buttons">
             <button type="submit">Save</button>
@@ -223,6 +221,10 @@ async function saveEdit() {
     const responseText = await response.text();
     console.log('Raw response text:', responseText);
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
+    }
+
     let updatedTransaction;
     try {
       updatedTransaction = JSON.parse(responseText);
@@ -231,16 +233,10 @@ async function saveEdit() {
       throw new Error(`Failed to parse server response: ${responseText}`);
     }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}, message: ${updatedTransaction.statusMessage || responseText}`);
-    }
-
     console.log('Parsed updated transaction:', updatedTransaction);
 
-    const index = transactions.value.findIndex(t => t.id === updatedTransaction.id);
-    if (index !== -1) {
-      transactions.value[index] = updatedTransaction;
-    }
+    // Instead of updating the local state, let's fetch the transactions again
+    await fetchTransactions();
 
     closeModal();
   } catch (error) {
@@ -257,7 +253,9 @@ async function fetchTransactions() {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     const data = await response.json()
+    console.log('Fetched transactions:', data)
     transactions.value = Array.isArray(data) ? data : []
+    console.log('Transactions after assignment:', transactions.value)
     errorMessage.value = ''
   } catch (error) {
     console.error('Error fetching transactions:', error)
@@ -269,7 +267,12 @@ async function fetchTransactions() {
   }
 }
 
+watch(transactions, (newTransactions) => {
+  console.log('Transactions updated:', newTransactions);
+}, { deep: true })
+
 onMounted(() => {
+  console.log('Component mounted, fetching transactions')
   fetchTransactions()
 })
 
