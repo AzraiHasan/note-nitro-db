@@ -90,15 +90,38 @@ function closeModal() {
   editingText.value = ''
 }
 
-function saveEdit() {
-  console.log(`save edit for ${editingTransaction.value.id}`)
-  // Here you would typically call an API to update the transaction
-  // For now, we'll just update it locally
-  const index = transactions.value.findIndex(t => t.id === editingTransaction.value.id)
-  if (index !== -1) {
-    transactions.value[index].text = editingText.value
+async function saveEdit() {
+  console.log(`Saving edit for transaction ${editingTransaction.value.id}`)
+
+  try {
+    const response = await fetch(`/api/updateTransaction/${editingTransaction.value.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ text: editingText.value }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.statusMessage || `HTTP error! status: ${response.status}`);
+    }
+
+    // Update the transaction locally
+    const index = transactions.value.findIndex(t => t.id === editingTransaction.value.id);
+    if (index !== -1) {
+      transactions.value[index] = {
+        ...transactions.value[index],
+        text: editingText.value
+      };
+    }
+
+    console.log(`Successfully updated transaction ${editingTransaction.value.id}`);
+    closeModal();
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    errorMessage.value = error.message || 'Failed to update transaction. Please try again.';
   }
-  closeModal()
 }
 
 async function fetchTransactions() {
