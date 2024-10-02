@@ -7,7 +7,10 @@
         <tr>
           <th>ID</th>
           <th>Text</th>
-          <th>Created At</th>
+          <th>Amount (MYR)</th>
+          <th>Type</th>
+          <th>Category</th>
+          <th>Date</th>
           <th>Action</th>
         </tr>
       </thead>
@@ -15,19 +18,19 @@
         <tr v-for="transaction in transactions" :key="transaction.id">
           <td>{{ transaction.id }}</td>
           <td>{{ transaction.text }}</td>
-          <td>{{ formatDate(transaction.created_at) }}</td>
+          <td>{{ formatCurrency(transaction.amount) }}</td>
+          <td>{{ transaction.type }}</td>
+          <td>{{ transaction.category }}</td>
+          <td>{{ formatDate(transaction.date) }}</td>
           <td>
-            <button v-if="isToday(transaction.created_at)" @click="openEditModal(transaction)">
+            <button @click="openEditModal(transaction)">
               Edit
             </button>
-            <span v-else>Synced</span>
           </td>
         </tr>
       </tbody>
     </table>
     <p v-else>No transactions found. {{ errorMessage }}</p>
-    <p>Debug: {{ transactions.length }} transactions</p>
-    <button @click="manualFetch">Manual Fetch</button>
   </div>
 
   <!-- Edit Modal -->
@@ -35,25 +38,73 @@
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <h3>Edit Transaction</h3>
-        <input v-model="editingText" type="text" />
-        <div class="modal-buttons">
-          <button @click="saveEdit">Save</button>
-          <button @click="closeModal">Cancel</button>
-        </div>
+        <form @submit.prevent="validateAndSave">
+          <label>Text:
+            <input v-model="editingTransaction.text" type="text" required />
+          </label>
+          <span class="error" v-if="errors.text">{{ errors.text }}</span>
+
+          <label>Amount (MYR):
+            <input v-model="editingTransaction.amount" type="number" step="0.01" required />
+          </label>
+          <span class="error" v-if="errors.amount">{{ errors.amount }}</span>
+
+          <label>Type:
+            <select v-model="editingTransaction.type" required @change="updateCategoryOptions">
+              <option value="Cash In">Cash In</option>
+              <option value="Cash Out">Cash Out</option>
+            </select>
+          </label>
+          <span class="error" v-if="errors.type">{{ errors.type }}</span>
+
+          <label>Category:
+            <select v-model="editingTransaction.category" required>
+              <option v-for="category in categoryOptions" :key="category" :value="category">
+                {{ category }}
+              </option>
+            </select>
+          </label>
+          <span class="error" v-if="errors.category">{{ errors.category }}</span>
+
+          <label>Date:
+            <input v-model="editingTransaction.date" type="date" required />
+          </label>
+          <span class="error" v-if="errors.date">{{ errors.date }}</span>
+
+          <div class="modal-buttons">
+            <button type="submit">Save</button>
+            <button type="button" @click="closeModal">Cancel</button>
+          </div>
+        </form>
       </div>
     </div>
   </Teleport>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
 
 const transactions = ref([])
 const errorMessage = ref('')
 const loading = ref(true)
 const showModal = ref(false)
-const editingTransaction = ref(null)
-const editingText = ref('')
+const editingTransaction = ref({
+  id: null,
+  text: '',
+  amount: 0,
+  type: '',
+  category: '',
+  date: ''
+})
+const categoryOptions = ref([])
+
+const errors = reactive({
+  text: '',
+  amount: '',
+  type: '',
+  category: '',
+  date: ''
+})
 
 const props = defineProps({
   refreshTrigger: {
@@ -65,58 +116,132 @@ const props = defineProps({
 const emit = defineEmits(['error'])
 
 function formatDate(dateString) {
-  return new Date(dateString).toLocaleString()
+  return new Date(dateString).toLocaleDateString()
 }
 
-function isToday(dateString) {
-  const today = new Date()
-  const transactionDate = new Date(dateString)
-  return (
-    transactionDate.getDate() === today.getDate() &&
-    transactionDate.getMonth() === today.getMonth() &&
-    transactionDate.getFullYear() === today.getFullYear()
-  )
+function formatCurrency(amount) {
+  return new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(amount)
+}
+
+function updateCategoryOptions() {
+  if (editingTransaction.value.type === 'Cash In') {
+    categoryOptions.value = ['Sales', 'Balance', 'Other']
+  } else {
+    categoryOptions.value = ['Ingredients', 'Supplies', 'Salary', 'Utilities', 'Rent', 'Other']
+  }
+  editingTransaction.value.category = ''
 }
 
 function openEditModal(transaction) {
-  editingTransaction.value = transaction
-  editingText.value = transaction.text
-  showModal.value = true
+  editingTransaction.value = { ...transaction };
+  updateCategoryOptions();
+  showModal.value = true;
 }
 
 function closeModal() {
   showModal.value = false
-  editingTransaction.value = null
-  editingText.value = ''
+  editingTransaction.value = {}
+  clearErrors()
+}
+
+function clearErrors() {
+  Object.keys(errors).forEach(key => errors[key] = '')
+}
+
+function validateForm() {
+  let isValid = true
+  clearErrors()
+
+  if (!editingTransaction.value.text?.trim()) {
+    errors.text = 'Transaction text is required'
+    isValid = false
+  }
+
+  if (!editingTransaction.value.amount || parseFloat(editingTransaction.value.amount) <= 0) {
+    errors.amount = 'Amount must be a positive number'
+    isValid = false
+  }
+
+  if (!editingTransaction.value.type) {
+    errors.type = 'Transaction type is required'
+    isValid = false
+  }
+
+  if (!editingTransaction.value.category) {
+    errors.category = 'Category is required'
+    isValid = false
+  }
+
+  if (!editingTransaction.value.date) {
+    errors.date = 'Date is required'
+    isValid = false
+  } else {
+    const selectedDate = new Date(editingTransaction.value.date)
+    const currentDate = new Date()
+    if (selectedDate > currentDate) {
+      errors.date = 'Date cannot be in the future'
+      isValid = false
+    }
+  }
+
+  return isValid
+}
+
+async function validateAndSave() {
+  if (validateForm()) {
+    await saveEdit()
+  }
 }
 
 async function saveEdit() {
-  console.log(`Saving edit for transaction ${editingTransaction.value.id}`)
-
   try {
+    console.log('Editing transaction (raw):', editingTransaction.value);
+
+    const transactionToSend = {
+      id: editingTransaction.value.id,
+      text: editingTransaction.value.text,
+      amount: parseFloat(editingTransaction.value.amount),
+      type: editingTransaction.value.type,
+      category: editingTransaction.value.category,
+      date: editingTransaction.value.date
+    };
+
+    console.log('Transaction to send (before stringify):', transactionToSend);
+    const jsonBody = JSON.stringify(transactionToSend);
+    console.log('JSON body to send:', jsonBody);
+
     const response = await fetch(`/api/updateTransaction/${editingTransaction.value.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text: editingText.value }),
+      body: jsonBody,
     });
 
+    console.log('Response status:', response.status);
+
+    const responseText = await response.text();
+    console.log('Raw response text:', responseText);
+
+    let updatedTransaction;
+    try {
+      updatedTransaction = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Error parsing response:', parseError);
+      throw new Error(`Failed to parse server response: ${responseText}`);
+    }
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.statusMessage || `HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${updatedTransaction.statusMessage || responseText}`);
     }
 
-    // Update the transaction locally
-    const index = transactions.value.findIndex(t => t.id === editingTransaction.value.id);
+    console.log('Parsed updated transaction:', updatedTransaction);
+
+    const index = transactions.value.findIndex(t => t.id === updatedTransaction.id);
     if (index !== -1) {
-      transactions.value[index] = {
-        ...transactions.value[index],
-        text: editingText.value
-      };
+      transactions.value[index] = updatedTransaction;
     }
 
-    console.log(`Successfully updated transaction ${editingTransaction.value.id}`);
     closeModal();
   } catch (error) {
     console.error('Error updating transaction:', error);
@@ -132,9 +257,7 @@ async function fetchTransactions() {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
     const data = await response.json()
-    console.log('Fetched transactions:', data)
     transactions.value = Array.isArray(data) ? data : []
-    console.log('Transactions after assignment:', transactions.value)
     errorMessage.value = ''
   } catch (error) {
     console.error('Error fetching transactions:', error)
@@ -146,24 +269,13 @@ async function fetchTransactions() {
   }
 }
 
-function manualFetch() {
-  console.log('Manual fetch triggered');
-  fetchTransactions();
-}
-
 onMounted(() => {
-  console.log('RecentTransactionList component mounted')
   fetchTransactions()
 })
 
 watch(() => props.refreshTrigger, () => {
-  console.log('Refresh triggered')
   fetchTransactions()
 })
-
-watch(transactions, (newValue) => {
-  console.log('Recent Transactions updated:', newValue)
-}, { deep: true })
 </script>
 
 <style scoped>
@@ -187,18 +299,6 @@ th {
   background-color: #f2f2f2;
 }
 
-button {
-  padding: 5px 10px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #45a049;
-}
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -218,22 +318,32 @@ button:hover {
   width: 300px;
 }
 
-.modal h3 {
-  margin-top: 0;
+.modal form {
+  display: flex;
+  flex-direction: column;
 }
 
-.modal input {
+.modal label {
+  display: block;
+  margin-top: 10px;
+}
+
+.modal input,
+.modal select {
   width: 100%;
   padding: 5px;
-  margin-bottom: 10px;
+  margin-top: 5px;
 }
 
 .modal-buttons {
   display: flex;
   justify-content: space-between;
+  margin-top: 20px;
 }
 
-.modal-buttons button {
-  width: 45%;
+.error {
+  color: red;
+  font-size: 0.8em;
+  margin-top: 2px;
 }
 </style>

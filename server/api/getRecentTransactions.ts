@@ -5,10 +5,10 @@ export default defineEventHandler(async (event) => {
 
   try {
     const result = await db.sql`
-      SELECT id, text, created_at
+      SELECT id, text, amount, type, category, date, created_at
       FROM transactions
-      WHERE created_at >= ${eightDaysAgo.toISOString()}
-      ORDER BY created_at DESC
+      WHERE date >= ${eightDaysAgo.toISOString().split('T')[0]}
+      ORDER BY date DESC, created_at DESC
     `;
 
     return result.rows || [];
