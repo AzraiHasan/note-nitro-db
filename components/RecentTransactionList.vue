@@ -17,7 +17,7 @@
           <td>{{ transaction.text }}</td>
           <td>{{ formatDate(transaction.created_at) }}</td>
           <td>
-            <button v-if="isToday(transaction.created_at)" @click="openEditModal(transaction.id)">
+            <button v-if="isToday(transaction.created_at)" @click="openEditModal(transaction)">
               Edit
             </button>
             <span v-else>Synced</span>
@@ -35,7 +35,7 @@
     <div v-if="showModal" class="modal-overlay">
       <div class="modal">
         <h3>Edit Transaction</h3>
-        <input v-model="editingTransaction.text" :key="editingTransaction.id" placeholder="Transaction text" />
+        <input v-model="editingText" type="text" />
         <div class="modal-buttons">
           <button @click="saveEdit">Save</button>
           <button @click="closeModal">Cancel</button>
@@ -46,11 +46,14 @@
 </template>
 
 <script setup>
+import { ref, watch, onMounted } from 'vue'
+
 const transactions = ref([])
 const errorMessage = ref('')
 const loading = ref(true)
 const showModal = ref(false)
-const editingTransaction = ref({ id: null, text: '' })
+const editingTransaction = ref(null)
+const editingText = ref('')
 
 const props = defineProps({
   refreshTrigger: {
@@ -76,24 +79,24 @@ function isToday(dateString) {
 }
 
 function openEditModal(transaction) {
-  console.log(`Open edit modal for ${transaction}`)
-  editingTransaction.value = { ...transaction }
+  editingTransaction.value = transaction
+  editingText.value = transaction.text
   showModal.value = true
 }
 
 function closeModal() {
-  console.log('Close modal')
   showModal.value = false
-  editingTransaction.value = { id: null, text: '' }
+  editingTransaction.value = null
+  editingText.value = ''
 }
 
 function saveEdit() {
-  console.log(`Save edit for ${editingTransaction.value.id}`)
-  // TODO: Implement actual save logic here
-  // Update the transaction in the transactions array
+  console.log(`save edit for ${editingTransaction.value.id}`)
+  // Here you would typically call an API to update the transaction
+  // For now, we'll just update it locally
   const index = transactions.value.findIndex(t => t.id === editingTransaction.value.id)
   if (index !== -1) {
-    transactions.value[index] = { ...transactions.value[index], ...editingTransaction.value }
+    transactions.value[index].text = editingText.value
   }
   closeModal()
 }
