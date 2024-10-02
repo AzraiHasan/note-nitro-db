@@ -1,7 +1,6 @@
 <template>
   <div>
-    <TestChart />
-
+    <TransactionChart :refreshTrigger="refreshTrigger" @error="handleListError" />
     <h1>Transaction Manager</h1>
 
     <!-- Add Transaction Form -->
