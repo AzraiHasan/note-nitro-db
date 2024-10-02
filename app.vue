@@ -12,12 +12,12 @@
     <p v-if="message">{{ message }}</p>
 
     <!-- Transaction List Component -->
-    <TransactionList :refreshTrigger="refreshTrigger" @error="handleListError" />
+    <!-- <TransactionList :refreshTrigger="refreshTrigger" @error="handleListError" /> -->
+    <RecentTransactionList :refreshTrigger="refreshTrigger" @error="handleListError" />
   </div>
 </template>
 
 <script setup>
-
 const transactionText = ref('')
 const message = ref('')
 const refreshTrigger = ref(0)
