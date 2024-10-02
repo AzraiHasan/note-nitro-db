@@ -32,7 +32,7 @@ const chartOptions = {
     },
     title: {
       display: true,
-      text: 'Transaction Summary (Last 7 Days)'
+      text: 'Transaction Summary (Rolling 7 Days)'
     }
   },
   scales: {
