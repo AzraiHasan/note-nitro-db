@@ -49,8 +49,13 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    console.log('Updated transaction:', result.rows?.[0])
-    return { body: JSON.stringify(result.rows?.[0]) }
+    const updatedTransaction = result.rows?.[0]
+    console.log('Updated transaction:', updatedTransaction)
+    
+    return {
+      statusCode: 200,
+      body: JSON.stringify(updatedTransaction)
+    }
   } catch (error: any) {
     console.error('Error updating transaction:', error)
     return {
