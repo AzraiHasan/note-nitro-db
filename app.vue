@@ -55,7 +55,7 @@ const message = ref('')
 const isError = ref(false)
 const refreshTrigger = ref(0)
 
-const categoryOptions = ref(['Sales', 'Balance', 'Other'])
+const categoryOptions = ref([])
 
 const errors = reactive({
   text: '',

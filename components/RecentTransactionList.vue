@@ -21,9 +21,10 @@
           <td>{{ transaction.category }}</td>
           <td>{{ transaction.text }}</td>
           <td>
-            <button @click="openEditModal(transaction)">
+            <button v-if="isToday(transaction.date)" @click="openEditModal(transaction)">
               Edit
             </button>
+            <span v-else>Synced</span>
           </td>
         </tr>
       </tbody>
@@ -115,6 +116,12 @@ const emit = defineEmits(['error'])
 
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString()
+}
+
+function isToday(dateString) {
+  const today = new Date()
+  const transactionDate = new Date(dateString)
+  return today.toDateString() === transactionDate.toDateString()
 }
 
 function formatCurrency(amount) {
@@ -296,6 +303,11 @@ td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
+}
+
+td span {
+  color: #888;
+  font-style: italic;
 }
 
 th {
