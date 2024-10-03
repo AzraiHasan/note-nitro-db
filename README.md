@@ -1,75 +1,96 @@
-# Nuxt 3 Minimal Starter
+# Transaction Manager
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+A simple web application for managing daily financial transactions, built with Vue.js and Nuxt.
 
-## Setup
+## Description
 
-Make sure to install the dependencies:
+Transaction Manager helps you keep track of your daily cash flow. It allows you to add, view, and edit transactions, categorizing them as either "Cash In" or "Cash Out". The app provides a visual representation of your transactions over the past week and a list of recent transactions.
 
-```bash
-# npm
-npm install
+## Features
 
-# pnpm
-pnpm install
+- Add new transactions with details (date, amount, type, category, and note)
+- View a bar chart of Cash In and Cash Out transactions for the past 7 days
+- Display a list of recent transactions
+- Edit today's transactions
+- Responsive design for desktop and mobile use (almost ;p)
 
-# yarn
-yarn install
+## Data Flow Diagram
 
-# bun
-bun install
+```mermaid
+   sequenceDiagram
+    participant User
+    participant App as App.vue
+    participant Chart as TransactionChart.vue
+    participant List as RecentTransactionList.vue
+    participant API as Server API
+
+    User->>App: Open application
+    App->>Chart: Create and mount
+    App->>List: Create and mount
+    
+    Chart->>API: GET /api/getRecentTransactions
+    API-->>Chart: Return recent transactions
+    Chart->>Chart: Render chart
+
+    List->>API: GET /api/getRecentTransactions
+    API-->>List: Return recent transactions
+    List->>List: Display transactions
+
+    User->>App: Fill new transaction form
+    User->>App: Submit new transaction
+    App->>API: POST /api/addTransaction
+    API-->>App: Confirm transaction added
+    App->>App: Update refreshTrigger
+
+    App->>Chart: Propagate refreshTrigger
+    Chart->>API: GET /api/getRecentTransactions
+    API-->>Chart: Return updated transactions
+    Chart->>Chart: Update chart
+
+    App->>List: Propagate refreshTrigger
+    List->>API: GET /api/getRecentTransactions
+    API-->>List: Return updated transactions
+    List->>List: Update transaction list
+
+    User->>List: Click "Edit" on today's transaction
+    List->>List: Open edit modal
+    User->>List: Modify transaction
+    User->>List: Save changes
+    List->>API: PUT /api/updateTransaction/:id
+    API-->>List: Confirm transaction updated
+    List->>API: GET /api/getRecentTransactions
+    API-->>List: Return updated transactions
+    List->>List: Update transaction list
+
+    List->>App: Emit error (if any)
+    App->>App: Display error message
 ```
 
-## Development Server
+## Usage
 
-Start the development server on `http://localhost:3000`:
+- To add a new transaction, fill out the form at the top of the page and click "Submit"
+- View your transaction history in the chart and list below the form
+- To edit a transaction from today, click the "Edit" button next to the transaction in the list
+- Transactions from previous days are marked as "Synced" and cannot be edited
 
-```bash
-# npm
-npm run dev
 
-# pnpm
-pnpm run dev
+## Technologies Used
 
-# yarn
-yarn dev
+- Vue.js 3
+- Nuxt 3
+- Chart.js (for data visualization)
+- SQLite (for data storage)
 
-# bun
-bun run dev
-```
+## API Endpoints
 
-## Production
+- `GET /api/getRecentTransactions`: Fetch recent transactions
+- `POST /api/addTransaction`: Add a new transaction
+- `PUT /api/updateTransaction/:id`: Update an existing transaction
 
-Build the application for production:
+## Contributing
 
-```bash
-# npm
-npm run build
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-# pnpm
-pnpm run build
+## License
 
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+This project is open source and available under the [MIT License](LICENSE).
