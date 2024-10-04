@@ -7,7 +7,9 @@
           {{ formatDate(row.date) }}
         </template>
         <template #amount-data="{ row }">
-          {{ formatCurrency(row.amount) }}
+          <span :class="row.type === 'Cash In' ? 'text-green-600' : 'text-red-600'">
+            {{ formatAmount(row.amount, row.type) }}
+          </span>
         </template>
         <template #action-data="{ row }">
           <UButton v-if="isToday(row.date)" size="sm" color="primary" @click="openEditModal(row)">
@@ -76,7 +78,6 @@ const categoryOptions = ref([])
 const columns = [
   { key: 'date', label: 'Date' },
   { key: 'amount', label: 'Amount (MYR)' },
-  { key: 'type', label: 'Type' },
   { key: 'category', label: 'Category' },
   { key: 'text', label: 'Note' },
   { key: 'action', label: 'Action' }
@@ -102,8 +103,9 @@ function isToday(dateString) {
   return today.toDateString() === transactionDate.toDateString()
 }
 
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(amount)
+function formatAmount(amount, type) {
+  const formattedAmount = new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(amount)
+  return type === 'Cash In' ? `+${formattedAmount}` : `-${formattedAmount}`
 }
 
 function updateCategoryOptions() {
