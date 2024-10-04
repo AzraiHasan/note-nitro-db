@@ -28,9 +28,8 @@
       <UButton type="submit" color="primary" class="mt-4">Submit</UButton>
     </UForm>
 
-    <!-- Alert for debugging purpose -->
-    <UAlert v-if="message" :type="isError ? 'danger' : 'success'" :title="isError ? 'Error' : 'Success'"
-      :description="message" class="mt-4" />
+    <UAlert v-if="localMessage" :type="localIsError ? 'danger' : 'success'" :title="localIsError ? 'Error' : 'Success'"
+      :description="localMessage" class="mt-4" />
   </UCard>
 </template>
 
@@ -43,7 +42,7 @@ const props = defineProps({
     default: () => ({
       date: new Date().toISOString().split('T')[0],
       amount: '',
-      type: null,  // Changed to null
+      type: null,
       category: '',
       text: ''
     })
@@ -61,6 +60,8 @@ const props = defineProps({
 const emit = defineEmits(['submit', 'updateCategoryOptions'])
 
 const formState = reactive({ ...props.initialFormState })
+const localMessage = ref('')
+const localIsError = ref(false)
 
 const typeOptions = ref([
   { label: 'Cash In', value: 'Cash In' },
@@ -91,8 +92,39 @@ function updateCategoryOptions() {
   formState.category = '' // Reset category when type changes
 }
 
-function onSubmit() {
-  emit('submit', { ...formState })
+async function onSubmit() {
+  try {
+    const response = await fetch('/api/addTransaction', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formState),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result = await response.json()
+    if (result.id) {
+      localMessage.value = `Transaction added successfully (ID: ${result.id})`
+    } else {
+      localMessage.value = `Transaction added successfully, but no ID was returned`
+    }
+    localIsError.value = false
+
+    // Reset form state
+    Object.assign(formState, props.initialFormState)
+    updateCategoryOptions()
+
+    // Emit submit event for parent component
+    emit('submit', result)
+  } catch (error) {
+    console.error('Error submitting transaction:', error)
+    localMessage.value = 'An error occurred while submitting the transaction. Please try again.'
+    localIsError.value = true
+  }
 }
 
 watch(() => props.initialFormState, (newValue) => {
@@ -100,11 +132,11 @@ watch(() => props.initialFormState, (newValue) => {
 }, { deep: true })
 
 watch(() => props.message, (newValue) => {
-  if (newValue && !props.isError) {
-    // Reset form after successful submission
-    Object.assign(formState, props.initialFormState)
-    updateCategoryOptions() // Update category options after reset
-  }
+  localMessage.value = newValue
+})
+
+watch(() => props.isError, (newValue) => {
+  localIsError.value = newValue
 })
 
 // Initialize category options

@@ -49,15 +49,25 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const updatedTransaction = result.rows?.[0]
-    console.log('Updated transaction:', updatedTransaction)
+    console.log('SQL query result:', JSON.stringify(result, null, 2));
+
+    if (!result || !Array.isArray(result.rows) || result.rows.length === 0) {
+      console.log('No rows returned from update query');
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'Transaction not found or not updated' })
+      }
+    }
+
+    const updatedTransaction = result.rows[0];
+    console.log('Updated transaction:', updatedTransaction);
     
     return {
       statusCode: 200,
       body: JSON.stringify(updatedTransaction)
     }
   } catch (error: any) {
-    console.error('Error updating transaction:', error)
+    console.error('Error updating transaction:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Error updating transaction: ' + error.message })
