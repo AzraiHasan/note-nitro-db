@@ -116,6 +116,6 @@ watch(() => props.refreshTrigger, () => {
 
 <style scoped>
 .container {
-  height: 400px;
+  height: 350px;
 }
 </style>

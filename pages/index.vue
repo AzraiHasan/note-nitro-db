@@ -9,8 +9,11 @@
 
     <UDivider class="my-8" />
 
-    <RecentTransactionList :refreshTrigger="refreshTrigger" @error="handleListError"
+    <MobileRecentTransactionList :refreshTrigger="refreshTrigger" @error="handleListError"
       @refresh="incrementRefreshTrigger" />
+
+    <!-- <RecentTransactionList :refreshTrigger="refreshTrigger" @error="handleListError"
+      @refresh="incrementRefreshTrigger" /> -->
   </div>
 </template>
 
