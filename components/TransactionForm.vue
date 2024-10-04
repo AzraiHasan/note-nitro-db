@@ -3,29 +3,29 @@
     <UForm :state="formState" @submit="onSubmit">
       <h2 class="mb-4 text-xl font-bold">Add New Transaction</h2>
 
-      <UFormGroup label="Date" name="date">
-        <UInput v-model="formState.date" type="date" />
+      <UFormGroup label="Date" name="date" class="mt-6">
+        <UInput v-model="formState.date" type="date" size="lg" />
       </UFormGroup>
 
-      <UFormGroup label="Amount (MYR)" name="amount">
-        <UInput v-model="formState.amount" type="number" step="0.01" />
+      <UFormGroup label="Amount (MYR)" name="amount" class="mt-6">
+        <UInput v-model="formState.amount" type="number" step="0.01" size="lg" />
       </UFormGroup>
 
-      <UFormGroup label="Type" name="type">
+      <UFormGroup label="Type" name="type" class="mt-6">
         <USelect v-model="formState.type" :options="typeOptions" option-attribute="label" value-attribute="value"
-          placeholder="Select Type ..." @change="updateCategoryOptions" />
+          placeholder="Select Type ..." @change="updateCategoryOptions" size="lg" />
       </UFormGroup>
 
-      <UFormGroup label="Category" name="category">
+      <UFormGroup label="Category" name="category" class="mt-6">
         <USelect v-model="formState.category" :options="categoryOptions" option-attribute="label"
-          value-attribute="value" placeholder="Select Category ..." :disabled="!formState.type" />
+          value-attribute="value" placeholder="Select Category ..." :disabled="!formState.type" size="lg" />
       </UFormGroup>
 
-      <UFormGroup label="Transaction Note" name="text">
+      <UFormGroup label="Transaction Note" name="text" size="lg" class="mt-6">
         <UTextarea v-model="formState.text" />
       </UFormGroup>
 
-      <UButton type="submit" color="primary" class="mt-4">Submit</UButton>
+      <UButton type="submit" color="primary" class="mt-6" size="lg">Submit</UButton>
     </UForm>
 
     <UAlert v-if="localMessage" :type="localIsError ? 'danger' : 'success'" :title="localIsError ? 'Error' : 'Success'"

@@ -17,6 +17,12 @@
           </UButton>
           <span v-else>Synced</span>
         </template>
+        <template #expand="{ row }">
+          <div class="p-4">
+            <h4 class="font-bold mb-2">Transaction Note:</h4>
+            <p>{{ row.text }}</p>
+          </div>
+        </template>
       </UTable>
       <UAlert v-else-if="!loading && transactions.length === 0" icon="i-heroicons-information-circle" color="info"
         title="No transactions" :description="errorMessage || 'No transactions found.'" />
@@ -79,7 +85,6 @@ const columns = [
   { key: 'date', label: 'Date' },
   { key: 'amount', label: 'Amount (MYR)' },
   { key: 'category', label: 'Category' },
-  { key: 'text', label: 'Note' },
   { key: 'action', label: 'Action' }
 ]
 

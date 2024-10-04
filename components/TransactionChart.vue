@@ -36,13 +36,15 @@ const chartOptions = {
     }
   },
   scales: {
-    /* x: {
-      reverse: true
-    }, */
     y: {
       beginAtZero: true
     }
   }
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
 }
 
 function getLastSevenDays() {
@@ -82,7 +84,7 @@ async function fetchChartData() {
     const cashOutData = lastSevenDays.map(date => consolidatedData[date].cashOut);
 
     chartData.value = {
-      labels: lastSevenDays,
+      labels: lastSevenDays.map(formatDate),
       datasets: [
         {
           label: 'Cash In',
